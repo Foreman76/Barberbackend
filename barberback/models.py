@@ -11,9 +11,10 @@ class BarberProfile(models.Model):
     class Meta:
         db_table = 'barber_profile'
 
-    Barber_Phone = models.CharField(max_length=20, default='', blank=True)
+    Barber_Phone = models.CharField(max_length=20, unique=True, db_index=True)
     Barber_User  = models.OneToOneField(User, on_delete=models.CASCADE)
     
+
 
 
 
