@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 
-from .models import BarberProfile
+from .models import BarberProfile, BarberUserSendNews, BarberNews
 from django.contrib.auth.models import User
-from barberback.serializers import userinfo, serializeruserinfo
+from barberback.serializers import userinfo, serializeruserinfo, serializerlistnews
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,25 +12,47 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-class testv(APIView):
+class GetUserInfo(APIView):
     authentication_classes = [TokenAuthentication,]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
+    def get(self, request, formant=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
 
         lToken = Token.objects.get(user=request.user)
 
-        b = userinfo(lToken, request.user.username, request.user.last_name)
-        content = serializeruserinfo(b)
+        lUserInfo = userinfo(lToken, request.user.username, request.user.last_name)
+        content = serializeruserinfo(lUserInfo)
         return Response(content.data)
 
 
 
-# Create your views here.
+class GetListNewsUser(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+
+        #Определим есть ли новости для пользователя
+        lUser = request.user
+        lListPk = []
+        lNewsForSend = BarberUserSendNews.objects.filter(bNewsUser=lUser, bSend=False)
+        for newssend in lNewsForSend:
+            lListPk.append(newssend.bNews.pk)
+        lNewsForSend.update(bSend=True)
+
+        lNews = BarberNews.objects.filter(pk__in=lListPk)
+        content = serializerlistnews(lNews, many=True)
+        return Response(content.data)
 
 
 
-class create_barberprofile(APIView):
+class CreateBarber(APIView):
 
     lNotExist = False
 

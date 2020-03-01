@@ -57,7 +57,7 @@ class BarberUserSendNews(models.Model):
         db_table = 'barber_sendNews'
 
     bNewsUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bNewsUser')
-    bNews     = models.ForeignKey(BarberNews, on_delete=models.CASCADE, related_name='bNews')        
+    bNews     = models.ForeignKey(BarberNews, on_delete=models.CASCADE, related_name='bNews')       
     bSend     = models.BooleanField(default=False)
 
     def __unicode__(self):

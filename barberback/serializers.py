@@ -2,6 +2,7 @@
 
 
 from rest_framework import serializers
+from .models import BarberNews
 
 
 class userinfo(object):
@@ -16,3 +17,10 @@ class serializeruserinfo(serializers.Serializer):
     token = serializers.CharField()        
     phone = serializers.CharField()
     nUser = serializers.CharField()
+
+class serializerlistnews(serializers.ModelSerializer):
+    class Meta:
+        model = BarberNews
+        fields = ['bTitleNews', 'bTextNews', 'bNewsDate']
+        
+

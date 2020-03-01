@@ -19,6 +19,7 @@ from barberback.views import *
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/v1/testv/', testv.as_view()),
-    url(r'^api/v1/register/', create_barberprofile.as_view()),
+    url(r'^api/v1/getuserinfo/', GetUserInfo.as_view()),
+    url(r'^api/v1/register/', CreateBarber.as_view()),
+    url(r'^api/v1/getlistnewsuser', GetListNewsUser.as_view()),
 ]
