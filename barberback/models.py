@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
+
+
+
 class BarberProfile(models.Model):
     
     class Meta:
@@ -64,7 +67,43 @@ class BarberUserSendNews(models.Model):
         return '%s %s %s' % (self.bNewsUser, self.bNews.bTitleNews, self.bSend)
 
 
+class ServiceTime(models.Model):
+    class Meta:
+        db_table = 'barber_service_time'
+        ordering = ['bTime']
 
+    bTime = models.TimeField(verbose_name='Время услуги')
 
+    def __unicode__(self):
+        return '%s ' % (self.bTime)
 
+class BarberMasters(models.Model):
+    class Meta:
+        db_table = 'barber_masters'
 
+    bMaster = models.CharField(max_length=100, verbose_name='Фамилия или Имя или Ник')    
+
+    def __unicode__(self):
+        return '%s ' % (self.bMaster)
+
+class UserOrders(models.Model):
+    class Meta:
+        db_table = 'barber_user_orders'
+        ordering = ['bOrderCreateDate']
+
+    bOrderService = models.ForeignKey(BarberService, on_delete=models.CASCADE, related_name='relOrderService')
+    bOrderUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relOrderUser')
+    bOrderMaster  = models.ForeignKey(BarberMasters, on_delete=models.CASCADE, related_name='relOrderMaster')
+    bOrderCreateDate  = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
+    bOrderTimeService = models.ForeignKey(ServiceTime, on_delete=models.CASCADE, related_name='relOrderServiceTime')
+    bOrderStatus = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return '%s ' % (self.bOrderCreateDate, self.bOrderUser, self.bOrderMaster, self.bOrderService, self.bOrderTimeService)
+
+class PushUserOrder(models.Model):
+    class Meta:
+        db_table = 'barber_pushuserorder'        
+
+    bPushUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relPushUser')    
+    #не забыть доделать и сделать миграции

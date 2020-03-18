@@ -22,4 +22,7 @@ urlpatterns = [
     url(r'^api/v1/getuserinfo/', GetUserInfo.as_view()),
     url(r'^api/v1/register/', CreateBarber.as_view()),
     url(r'^api/v1/getlistnewsuser', GetListNewsUser.as_view()),
+    url(r'^api/v1/getlistservices', GetListServices.as_view()),
+    url(r'^api/v1/getlistmasters', GetListMasters.as_view()),
+    url(r'^api/v1/getlisttime/', GetListServicesTime.as_view())
 ]

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from .models import BarberProfile, BarberUserSendNews, BarberNews
 from django.contrib.auth.models import User
-from barberback.serializers import userinfo, serializeruserinfo, serializerlistnews
+from barberback.serializers import *
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -23,8 +23,8 @@ class GetUserInfo(APIView):
 
         lToken = Token.objects.get(user=request.user)
 
-        lUserInfo = userinfo(lToken, request.user.username, request.user.last_name)
-        content = serializeruserinfo(lUserInfo)
+        lUserInfo = UserInfo(lToken, request.user.username, request.user.last_name)
+        content = SerializerUserInfo(lUserInfo)
         return Response(content.data)
 
 
@@ -44,10 +44,10 @@ class GetListNewsUser(APIView):
         lNewsForSend = BarberUserSendNews.objects.filter(bNewsUser=lUser, bSend=False)
         for newssend in lNewsForSend:
             lListPk.append(newssend.bNews.pk)
-        lNewsForSend.update(bSend=True)
+        #lNewsForSend.update(bSend=True)
 
         lNews = BarberNews.objects.filter(pk__in=lListPk)
-        content = serializerlistnews(lNews, many=True)
+        content = SerializerListNews(lNews, many=True)
         return Response(content.data)
 
 
@@ -84,5 +84,41 @@ class CreateBarber(APIView):
             content = serializeruserinfo(b)
             return Response(content.data)
 
-        
+class GetListServices(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+
+        lServices = BarberService.objects.all()
+        content = SerializerListServices(lServices, many=True)
+        return Response(content.data)
     
+class GetListMasters(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+
+        lMasters = BarberMasters.objects.all()
+        content = SerializerListMasters(lMasters, many=True)
+        return Response(content.data)
+
+class GetListServicesTime(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+
+        lServicesTime = ServiceTime.objects.all()
+        content = SerializerListServiceTime(lServicesTime, many=True)
+        return Response(content.data)        
