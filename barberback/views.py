@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 
-from .models import BarberProfile, BarberUserSendNews, BarberNews
+from .models import BarberProfile, BarberUserSendNews, BarberNews, UserOrders
 from django.contrib.auth.models import User
 from barberback.serializers import *
 from rest_framework.authentication import TokenAuthentication
@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+import json
+from datetime import datetime
 
 class GetUserInfo(APIView):
     authentication_classes = [TokenAuthentication,]
@@ -118,7 +120,27 @@ class GetListServicesTime(APIView):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def post(self, request, format=None):
+        dt = request.data['date']
+        ldate = datetime.strptime(dt, '%Y-%m-%d')
 
         lServicesTime = ServiceTime.objects.all()
+        lservicepk = []
+        for lservtime in lServicesTime:
+            lservicepk.append(lservtime.pk)
+
+        userorders = UserOrders.objects.filter(bOrderTimeService__in=lservicepk, 
+            bOrderCreateDate=ldate, 
+            bOrderMaster=request.data['master_id'])    
+
         content = SerializerListServiceTime(lServicesTime, many=True)
         return Response(content.data)        
+
+class GetStopOutMaster(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+        pass

@@ -30,7 +30,7 @@ class BarberService(models.Model):
     bPrice   = models.DecimalField(verbose_name='Цена услуги', max_digits=15, decimal_places=2) 
 
     def __unicode__(self):
-        return '%s %s' % (self.bService, self.bPrice) 
+        return 'Услуга: %s  Цена: %s' % (self.bService, self.bPrice) 
 
 class BarberNews(models.Model):
 
@@ -52,7 +52,7 @@ class BarberNews(models.Model):
 
 
     def __unicode__(self):
-        return '%s %s' % (self.bNewsDate, self.bTitleNews)
+        return 'Дата создания: %s  Заголовок новости: %s' % (self.bNewsDate, self.bTitleNews)
 
 class BarberUserSendNews(models.Model):
 
@@ -73,9 +73,10 @@ class ServiceTime(models.Model):
         ordering = ['bTime']
 
     bTime = models.TimeField(verbose_name='Время услуги')
+    bTimeStatus = models.CharField(max_length=10, verbose_name='СлужебноеПоле', default='')
 
     def __unicode__(self):
-        return '%s ' % (self.bTime)
+        return 'Время Услуги: %s ' % (self.bTime)
 
 class BarberMasters(models.Model):
     class Meta:
@@ -84,7 +85,7 @@ class BarberMasters(models.Model):
     bMaster = models.CharField(max_length=100, verbose_name='Фамилия или Имя или Ник')    
 
     def __unicode__(self):
-        return '%s ' % (self.bMaster)
+        return 'Мастер: %s ' % (self.bMaster)
 
 class UserOrders(models.Model):
     class Meta:
@@ -94,16 +95,26 @@ class UserOrders(models.Model):
     bOrderService = models.ForeignKey(BarberService, on_delete=models.CASCADE, related_name='relOrderService')
     bOrderUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relOrderUser')
     bOrderMaster  = models.ForeignKey(BarberMasters, on_delete=models.CASCADE, related_name='relOrderMaster')
-    bOrderCreateDate  = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
+    bOrderCreateDate  = models.DateField(verbose_name='Дата создания', auto_now_add=True)
     bOrderTimeService = models.ForeignKey(ServiceTime, on_delete=models.CASCADE, related_name='relOrderServiceTime')
     bOrderStatus = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return '%s ' % (self.bOrderCreateDate, self.bOrderUser, self.bOrderMaster, self.bOrderService, self.bOrderTimeService)
-
+        return 'Дата создания: %s  Клиент: %s  Мастер: %s  Услуга: %s  Время: %s ' % (self.bOrderCreateDate, self.bOrderUser, self.bOrderMaster, self.bOrderService, self.bOrderTimeService)
+'''
 class PushUserOrder(models.Model):
     class Meta:
         db_table = 'barber_pushuserorder'        
 
     bPushUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relPushUser')    
-    #не забыть доделать и сделать миграции
+'''
+class MasterTimeTable(models.Model):
+    class Meta:
+        db_table = 'master_time'
+
+    bTimeMaster  = models.ForeignKey(BarberMasters, on_delete=models.CASCADE, related_name='reltimemaster')  
+    bDateFrom    = models.DateField(verbose_name='Дата начала отсутствия')
+    bDateBefore  = models.DateField(verbose_name='Дата окончания отсутствия')   
+
+    def __unicode__(self):
+        return 'Мастер: %s Отсутствует от %s до %s ' % (self.bTimeMaster, self.bDateFrom, self.bDateBefore)
