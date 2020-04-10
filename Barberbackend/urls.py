@@ -24,5 +24,8 @@ urlpatterns = [
     url(r'^api/v1/getlistnewsuser', GetListNewsUser.as_view()),
     url(r'^api/v1/getlistservices', GetListServices.as_view()),
     url(r'^api/v1/getlistmasters', GetListMasters.as_view()),
-    url(r'^api/v1/getlisttime/', GetListServicesTime.as_view())
+    url(r'^api/v1/getlisttime/', GetListServicesTime.as_view()),
+    url(r'^api/v1/getstoptime/', GetStopOutMaster.as_view()),
+    url(r'^api/v1/createorder/', CreateUserOrder.as_view()),
+    url(r'^api/v1/getorders/', GetUsersOrder.as_view())
 ]

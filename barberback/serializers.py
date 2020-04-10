@@ -26,14 +26,25 @@ class SerializerListNews(serializers.ModelSerializer):
 class SerializerListServices(serializers.ModelSerializer):
     class Meta:
         model = BarberService
-        fields = ['id', 'bService', 'bPrice']        
+        fields = ['id', 'bService', 'bPrice', 'bService_text']        
 
 class SerializerListMasters(serializers.ModelSerializer):
     class Meta:
         model = BarberMasters
-        fields = ['id', 'bMaster']
+        fields = ['id', 'bMaster', 'bMaster_text', 'bDateBegin', 'bDateEnd']
 
 class SerializerListServiceTime(serializers.ModelSerializer):
     class Meta:
         model = ServiceTime
-        fields = ['id', 'bTime']        
+        fields = ['id', 'bTime', 'bTimeStatus']        
+
+class SerializerStopTime(serializers.ModelSerializer):
+    class Meta:
+        model = MasterTimeTable
+        fields = ['bTimeMaster', 'bDateEnd']      
+
+
+class SerializerOrder(serializers.ModelSerializer):
+    class Meta:
+        model = UserOrders             
+        fields = '__al__'

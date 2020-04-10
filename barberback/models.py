@@ -28,6 +28,7 @@ class BarberService(models.Model):
 
     bService = models.CharField(max_length=200, verbose_name='Наименование услуги') 
     bPrice   = models.DecimalField(verbose_name='Цена услуги', max_digits=15, decimal_places=2) 
+    bService_text = models.TextField(verbose_name='Описание услуги', blank=True)  
 
     def __unicode__(self):
         return 'Услуга: %s  Цена: %s' % (self.bService, self.bPrice) 
@@ -73,7 +74,7 @@ class ServiceTime(models.Model):
         ordering = ['bTime']
 
     bTime = models.TimeField(verbose_name='Время услуги')
-    bTimeStatus = models.CharField(max_length=10, verbose_name='СлужебноеПоле', default='')
+    bTimeStatus = models.CharField(max_length=10, verbose_name='СлужебноеПоле', blank=True, editable=False)
 
     def __unicode__(self):
         return 'Время Услуги: %s ' % (self.bTime)
@@ -82,12 +83,16 @@ class BarberMasters(models.Model):
     class Meta:
         db_table = 'barber_masters'
 
-    bMaster = models.CharField(max_length=100, verbose_name='Фамилия или Имя или Ник')    
+    bMaster = models.CharField(max_length=100, verbose_name='Фамилия или Имя или Ник') 
+    bMaster_text = models.TextField(verbose_name='Описание мастера', blank=True,) 
+    bDateBegin   = models.DateField(verbose_name='Служебное поле дата начала отсутствия', blank=True, null=True, editable=False)
+    bDateEnd  = models.DateField(verbose_name='Служебное поле дата окончания отсутствия', blank=True, null=True, editable=False)   
 
     def __unicode__(self):
         return 'Мастер: %s ' % (self.bMaster)
 
 class UserOrders(models.Model):
+    """  Таблица заявок пользователей """
     class Meta:
         db_table = 'barber_user_orders'
         ordering = ['bOrderCreateDate']
@@ -100,7 +105,7 @@ class UserOrders(models.Model):
     bOrderStatus = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return 'Дата создания: %s  Клиент: %s  Мастер: %s  Услуга: %s  Время: %s ' % (self.bOrderCreateDate, self.bOrderUser, self.bOrderMaster, self.bOrderService, self.bOrderTimeService)
+        return 'Дата создания: %s  Клиент: %s  %s  %s  %s ' % (self.bOrderCreateDate, self.bOrderUser, self.bOrderMaster, self.bOrderService, self.bOrderTimeService)
 '''
 class PushUserOrder(models.Model):
     class Meta:
@@ -109,12 +114,13 @@ class PushUserOrder(models.Model):
     bPushUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relPushUser')    
 '''
 class MasterTimeTable(models.Model):
+    """ Таблица расписания мастеров записи редактируются Администратором """
     class Meta:
         db_table = 'master_time'
 
     bTimeMaster  = models.ForeignKey(BarberMasters, on_delete=models.CASCADE, related_name='reltimemaster')  
-    bDateFrom    = models.DateField(verbose_name='Дата начала отсутствия')
-    bDateBefore  = models.DateField(verbose_name='Дата окончания отсутствия')   
+    bDateBegin   = models.DateField(verbose_name='Дата начала отсутствия')
+    bDateEnd  = models.DateField(verbose_name='Дата окончания отсутствия')   
 
     def __unicode__(self):
-        return 'Мастер: %s Отсутствует от %s до %s ' % (self.bTimeMaster, self.bDateFrom, self.bDateBefore)
+        return 'Мастер: %s Отсутствует от %s до %s ' % (self.bTimeMaster, self.bDateBegin, self.bDateEnd)

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 
-from .models import BarberProfile, BarberUserSendNews, BarberNews, UserOrders
+from .models import BarberProfile, BarberUserSendNews, BarberNews, UserOrders, MasterTimeTable
 from django.contrib.auth.models import User
 from barberback.serializers import *
 from rest_framework.authentication import TokenAuthentication
@@ -48,7 +48,7 @@ class GetListNewsUser(APIView):
             lListPk.append(newssend.bNews.pk)
         #lNewsForSend.update(bSend=True)
 
-        lNews = BarberNews.objects.filter(pk__in=lListPk)
+        lNews = BarberNews.objects.filter(pk__in=lListPk).order_by('-bNewsDate')[:20]
         content = SerializerListNews(lNews, many=True)
         return Response(content.data)
 
@@ -107,8 +107,20 @@ class GetListMasters(APIView):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def post(self, request, format=None):
-
+        dt = request.data['date']
+        ldate = datetime.strptime(dt, '%Y-%m-%d')
         lMasters = BarberMasters.objects.all()
+
+        listmaster_pk = []
+        for master in lMasters:
+            listmaster_pk.append(master.pk)
+        lstoplist = MasterTimeTable.objects.filter(bTimeMaster__in=listmaster_pk, bDateBegin__lte=ldate, bDateEnd__gte=ldate)
+        
+        for master in lMasters:
+            for lstop in lstoplist:
+                if lstop.bTimeMaster == master:
+                    master.bDateBegin = lstop.bDateBegin
+                    master.bDateEnd = lstop.bDateEnd
         content = SerializerListMasters(lMasters, many=True)
         return Response(content.data)
 
@@ -121,7 +133,7 @@ class GetListServicesTime(APIView):
 
     def post(self, request, format=None):
         dt = request.data['date']
-        ldate = datetime.strptime(dt, '%Y-%m-%d')
+        ldate = datetime.date(datetime.strptime(dt, '%Y-%m-%d'))
 
         lServicesTime = ServiceTime.objects.all()
         lservicepk = []
@@ -131,6 +143,21 @@ class GetListServicesTime(APIView):
         userorders = UserOrders.objects.filter(bOrderTimeService__in=lservicepk, 
             bOrderCreateDate=ldate, 
             bOrderMaster=request.data['master_id'])    
+        lcount = userorders.count()
+        ltimenow = datetime.time(datetime.now())
+        lcurrent_date = datetime.date(datetime.today())
+        for ltime in lServicesTime:
+            if ltime.bTime < ltimenow and ldate == lcurrent_date:
+                ltime.bTimeStatus = 'Запрещено'
+            elif lcount == 0:
+                ltime.bTimeStatus = 'Свободно'
+            else:
+                for lorder in userorders:
+                    if ltime == lorder.bOrderTimeService:
+                        ltime.bTimeStatus = 'Занято'
+                        break
+                    else:
+                        ltime.bTimeStatus = 'Свободно'    
 
         content = SerializerListServiceTime(lServicesTime, many=True)
         return Response(content.data)        
@@ -143,4 +170,66 @@ class GetStopOutMaster(APIView):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def post(self, request, format=None):
-        pass
+        ldate = datetime.strptime(request.data['date'], '%Y-%m-%d')
+        lmaster = request.data['master_id']
+
+        lstoplist = MasterTimeTable.objects.filter(bTimeMaster=lmaster, bDateBegin__lte=ldate, bDateEnd__gte=ldate)
+        content = SerializerStopTime(lstoplist, many=True)
+        return Response(content.data)
+        
+class CreateUserOrder(APIView):
+    
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+        
+        dt = request.data['date']
+        ldate = datetime.strptime(dt, '%Y-%m-%d')
+
+        try:
+            service = BarberService.objects.get(pk=request.data['service_id'])
+        except BarberService.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            master = BarberMasters.objects.get(pk=request.data['master_id'])
+        except BarberMasters.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            servicetime = ServiceTime.objects.get(pk=request.data['servicetime_id'])
+        except ServiceTime.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        order = UserOrders(
+            bOrderService = service,
+            bOrderUser = request.user,
+            bOrderMaster = master,
+            bOrderCreateDate = ldate,
+            bOrderTimeService = servicetime
+        )
+        
+        inst = order.save()
+        
+
+        return Response(status=status.HTTP_201_CREATED)
+
+
+class GetUsersOrder(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated] 
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None): 
+
+        orders = UserOrders.objects.filter(bOrderUser=request.user).order_by('-bOrderCreateDate')[:10]
+        content = SerializerOrder(orders, many=True)
+        return Response(content.data)
+
+        
