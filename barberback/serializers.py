@@ -47,4 +47,8 @@ class SerializerStopTime(serializers.ModelSerializer):
 class SerializerOrder(serializers.ModelSerializer):
     class Meta:
         model = UserOrders             
-        fields = '__al__'
+        fields = '__all__'
+        depth = 1
+
+def funcname(self, parameter_list):
+    raise NotImplementedError        

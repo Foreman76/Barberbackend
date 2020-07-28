@@ -9,10 +9,11 @@
         {
             "name": "Python: Django",
             "type": "python",
-            "request": "launch",
+            "request": "launch",s
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "runserver",
+                "192.168.3.18:8000"
                 "--noreload"
             ],
             "django": true

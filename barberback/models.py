@@ -42,14 +42,12 @@ class BarberNews(models.Model):
     bTitleNews = models.CharField(max_length=150, verbose_name='Заголовок')
     bTextNews  = models.TextField(verbose_name='Текст новости')
     bNewsDate  = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
+    bNewsImage = models.ImageField(upload_to='imgnews/', verbose_name='Картинка новости', blank=True)
 
     def save(self, *args, **kwargs):
         super(BarberNews, self).save(*args, **kwargs)
 
-        ListUser = User.objects.filter(is_superuser=False)
-        for lUser in ListUser:
-            lFields = {'bNewsUser':lUser, 'bNews':self, 'bSend':False}
-            BarberUserSendNews.objects.update_or_create(bNewsUser=lUser, bNews=self , defaults=lFields)
+    
 
 
     def __unicode__(self):
@@ -100,7 +98,7 @@ class UserOrders(models.Model):
     bOrderService = models.ForeignKey(BarberService, on_delete=models.CASCADE, related_name='relOrderService')
     bOrderUser    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relOrderUser')
     bOrderMaster  = models.ForeignKey(BarberMasters, on_delete=models.CASCADE, related_name='relOrderMaster')
-    bOrderCreateDate  = models.DateField(verbose_name='Дата создания', auto_now_add=True)
+    bOrderCreateDate  = models.DateField(verbose_name='Дата создания')
     bOrderTimeService = models.ForeignKey(ServiceTime, on_delete=models.CASCADE, related_name='relOrderServiceTime')
     bOrderStatus = models.BooleanField(default=False)
 

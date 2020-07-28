@@ -41,18 +41,16 @@ class GetListNewsUser(APIView):
     def post(self, request, format=None):
 
         #Определим есть ли новости для пользователя
-        lUser = request.user
-        lListPk = []
-        lNewsForSend = BarberUserSendNews.objects.filter(bNewsUser=lUser, bSend=False)
-        for newssend in lNewsForSend:
-            lListPk.append(newssend.bNews.pk)
-        #lNewsForSend.update(bSend=True)
+        #lUser = request.user
+        #lListPk = []
+        #lNewsForSend = BarberUserSendNews.objects.filter(bNewsUser=lUser, bSend=False)
+        #for newssend in lNewsForSend:
+        #    lListPk.append(newssend.bNews.pk)
 
-        lNews = BarberNews.objects.filter(pk__in=lListPk).order_by('-bNewsDate')[:20]
+        #lNews = BarberNews.objects.filter(pk__in=lListPk).order_by('-bNewsDate')[:20]
+        lNews = BarberNews.objects.all().order_by('-bNewsDate')[:2]
         content = SerializerListNews(lNews, many=True)
         return Response(content.data)
-
-
 
 class CreateBarber(APIView):
 
@@ -67,8 +65,8 @@ class CreateBarber(APIView):
         try:
             lUser = User.objects.get(username=request.data['phone'])
             lToken = Token.objects.get(user=lUser)
-            b = userinfo(token=lToken, phone=lUser.username, nUser=lUser.last_name)
-            content = serializeruserinfo(b)
+            b = UserInfo(token=lToken, phone=lUser.username, nUser=lUser.last_name)
+            content = SerializerUserInfo(b)
             return Response(content.data)
         except User.DoesNotExist:
             self.lNotExist = True
@@ -218,7 +216,6 @@ class CreateUserOrder(APIView):
 
         return Response(status=status.HTTP_201_CREATED)
 
-
 class GetUsersOrder(APIView):
     authentication_classes = [TokenAuthentication,]
     permission_classes = [IsAuthenticated] 
@@ -232,4 +229,61 @@ class GetUsersOrder(APIView):
         content = SerializerOrder(orders, many=True)
         return Response(content.data)
 
+class GetDataTotal(APIView):
+    
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated] 
+
+    def get(self, request, format=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request, format=None):
+
+        '''
+        self.get_list_masters()
+        self.get_list_service()
+        self.get_user_orders()
+        self.get_list_news()
+        '''    
+
+        dict_data = {}
+
+        dict_data['news'] = self.list_news()
+        dict_data['masters'] = self.list_masters(request)
+        dict_data['services'] = self.list_services()
+        dict_data['orders'] = self.list_orders(request)
+
+        return Response(dict_data)
+
+    def list_news(self):
+        lNews = BarberNews.objects.all().order_by('-bNewsDate')[:20]
+        content = SerializerListNews(lNews, many=True)
+        return content.data
+
+    def list_orders(self, request):
+        orders = UserOrders.objects.filter(bOrderUser=request.user).order_by('bOrderCreateDate')[:10]
+        content = SerializerOrder(orders, many=True)
+        return content.data
+
+    def list_services(self):
+        lServices = BarberService.objects.all()
+        content = SerializerListServices(lServices, many=True)
+        return content.data
+
+    def list_masters(self, request):
+        dt = request.data['date']
+        ldate = datetime.strptime(dt, '%Y-%m-%d')
+        lMasters = BarberMasters.objects.all()
+
+        listmaster_pk = []
+        for master in lMasters:
+            listmaster_pk.append(master.pk)
+        lstoplist = MasterTimeTable.objects.filter(bTimeMaster__in=listmaster_pk, bDateBegin__lte=ldate, bDateEnd__gte=ldate)
         
+        for master in lMasters:
+            for lstop in lstoplist:
+                if lstop.bTimeMaster == master:
+                    master.bDateBegin = lstop.bDateBegin
+                    master.bDateEnd = lstop.bDateEnd
+        content = SerializerListMasters(lMasters, many=True)
+        return content.data
